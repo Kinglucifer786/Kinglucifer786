@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IHA Surgical Instrument Catalog</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f9;
+        }
+        .catalog-container {
+            display: grid;
+            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+        .instrument-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            cursor: pointer;
+            position: relative;
+        }
+        .instrument-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .image-container {
+            height: 200px;
+            overflow: hidden;
+            background-color: #e2e8f0;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: opacity 0.5s ease-in-out;
+            opacity: 0;
+        }
+        .image-container img.active {
+            opacity: 1;
+        }
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(2px);
+            z-index: 10;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 800px;
+            width: 90%;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh;
+        }
+        .chat-container {
+            height: 250px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex-grow: 1;
+        }
+        .user-message {
+            background-color: #d1e7dd;
+            border-radius: 8px 8px 0 8px;
+            padding: 0.75rem;
+            align-self: flex-end;
+            max-width: 85%;
+        }
+        .ai-message {
+            background-color: #f0f4f7;
+            border-radius: 8px 8px 8px 0;
+            padding: 0.75rem;
+            align-self: flex-start;
+            max-width: 85%;
+        }
+    </style>
+</head>
+<body class="p-6">
+    <div class="max-w-7xl mx-auto">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-bold text-gray-900 mb-2">IHA Surgical Instrument Catalog</h1>
+            <p class="text-gray-600 text-lg">Precision. Reliability. Innovation.</p>
+        </header>
+
+        <!-- User Info Section -->
+        <div class="mb-8 p-4 bg-white rounded-lg shadow-sm flex items-center gap-4">
+            <label for="userName" class="text-gray-600 font-medium">Your Name:</label>
+            <input type="text" id="userName" placeholder="Enter your name to save..." class="flex-grow p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+        </div>
+
+        <div class="mb-8">
+            <input type="text" id="searchInput" placeholder="Search for instruments by name or code..." class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm transition-all duration-200">
+        </div>
+
+        <div id="catalog" class="catalog-container">
+            <!-- Instruments will be rendered here by JavaScript -->
+        </div>
+
+        <div id="noResults" class="hidden text-center text-gray-500 text-lg mt-10">
+            No instruments found matching your search.
+        </div>
+    </div>
+
+    <!-- Modal for Detailed Product Information and Features -->
+    <div id="infoModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex-grow">
+                    <h3 id="modalTitle" class="text-2xl font-semibold text-gray-800"></h3>
+                    <p id="modalSubtitle" class="text-sm text-gray-500"></p>
+                </div>
+                <button id="closeModal" class="text-gray-500 hover:text-gray-800 focus:outline-none">
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <div class="image-container rounded-lg mb-4">
+                <div class="loading-overlay">
+                    <svg class="animate-spin -ml-1 mr-3 h-8 w-8 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-4 overflow-y-auto pr-2">
+                <!-- Detailed product info -->
+                <div class="flex-1 bg-gray-50 p-4 rounded-lg">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-2">Product Details</h4>
+                    <p class="text-gray-700 text-sm mb-2"><span class="font-medium">Material:</span> <span id="modalMaterial"></span></p>
+                    <p class="text-gray-700 text-sm mb-2"><span class="font-medium">Features:</span> <span id="modalFeatures"></span></p>
+                    <p class="text-gray-700 text-sm"><span class="font-medium">Certifications:</span> <span id="modalCertifications"></span></p>
+                </div>
+
+                <!-- Alternatives Section -->
+                <div class="flex-1 bg-gray-50 p-4 rounded-lg">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-2">Suggested Alternatives ✨</h4>
+                    <div id="alternativesContent" class="text-gray-700 text-sm">
+                        <p class="text-gray-500">Click the button below to get suggestions.</p>
+                    </div>
+                </div>
+
+                <!-- Chat Section -->
+                <div class="flex-1 bg-gray-50 p-4 rounded-lg">
+                    <h4 class="text-lg font-semibold text-gray-800 mb-2">Ask an Expert ✨</h4>
+                    <div id="chatMessages" class="chat-container mb-4">
+                        <div class="ai-message">Hello! What would you like to know about this instrument?</div>
+                    </div>
+                    <form id="chatForm" class="flex gap-2">
+                        <input type="text" id="chatInput" placeholder="Ask a question..." class="flex-grow p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+                        <button type="submit" class="bg-blue-600 text-white font-medium py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">Send</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="p-5 border-t border-gray-200 mt-4 flex flex-col md:flex-row gap-2">
+                <button id="pronounceBtnModal" class="w-full md:w-1/2 bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors">Pronounce ✨</button>
+                <button id="alternativesBtnModal" class="w-full md:w-1/2 bg-blue-600 text-white font-medium py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">Suggest Alternatives ✨</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // [Full script block from your previous message should be placed here.]
+    </script>
+</body>
+</html>
