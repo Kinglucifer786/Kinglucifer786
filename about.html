@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IHA Surgical Instrument Catalog</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f9;
+        }
+        .catalog-container {
+            display: grid;
+            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+        .instrument-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            cursor: pointer;
+            position: relative;
+            background: #fff;
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        .instrument-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .image-container {
+            height: 180px;
+            overflow: hidden;
+            background-color: #e2e8f0;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body class="p-6">
+    <div class="max-w-7xl mx-auto">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-bold text-gray-900 mb-2">IHA Surgical Instrument Catalog</h1>
+            <p class="text-gray-600 text-lg">Precision. Reliability. Innovation.</p>
+        </header>
+
+        <!-- User Info Section -->
+        <div class="mb-8 p-4 bg-white rounded-lg shadow-sm flex items-center gap-4">
+            <label for="userName" class="text-gray-600 font-medium">Your Name:</label>
+            <input type="text" id="userName" placeholder="Enter your name to save..." class="flex-grow p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200">
+        </div>
+
+        <div class="mb-8">
+            <input type="text" id="searchInput" placeholder="Search for instruments by name or code..." class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm transition-all duration-200">
+        </div>
+
+        <div id="catalog" class="catalog-container">
+            <!-- Instruments will be rendered here by JavaScript -->
+        </div>
+
+        <div id="noResults" class="hidden text-center text-gray-500 text-lg mt-10">
+            No instruments found matching your search.
+        </div>
+    </div>
+
+    <script>
+        // Demo instruments array WITH IMAGES
+        const instruments = [
+            {
+                name: "Scalpel",
+                code: "IHA-001",
+                image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80",
+                material: "Stainless Steel",
+                features: "Sharp blade for precise incisions",
+                certifications: "ISO 13485, CE"
+            },
+            {
+                name: "Forceps",
+                code: "IHA-002",
+                image: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=400&q=80",
+                material: "Titanium",
+                features: "Non-slip grip, lightweight",
+                certifications: "FDA, CE"
+            },
+            {
+                name: "Retractor",
+                code: "IHA-003",
+                image: "https://images.unsplash.com/photo-1520880867055-1e30d1cb001c?auto=format&fit=crop&w=400&q=80",
+                material: "Stainless Steel",
+                features: "Ergonomic handle, rust-resistant",
+                certifications: "ISO 13485"
+            }
+        ];
+
+        const catalog = document.getElementById('catalog');
+        const searchInput = document.getElementById('searchInput');
+        const noResults = document.getElementById('noResults');
+
+        // Render catalog
+        function renderCatalog(data) {
+            catalog.innerHTML = '';
+            if (data.length === 0) {
+                noResults.classList.remove('hidden');
+                return;
+            } else {
+                noResults.classList.add('hidden');
+            }
+            data.forEach(inst => {
+                const card = document.createElement('div');
+                card.className = 'instrument-card';
+                card.innerHTML = `
+                    <div class="image-container">
+                        <img src="${inst.image}" alt="${inst.name}" />
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-1">${inst.name}</h3>
+                    <p class="text-gray-600 mb-2">${inst.code}</p>
+                    <p class="text-gray-500 text-sm">${inst.features}</p>
+                `;
+                catalog.appendChild(card);
+            });
+        }
+
+        // Search functionality
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = instruments.filter(inst =>
+                inst.name.toLowerCase().includes(query) ||
+                inst.code.toLowerCase().includes(query)
+            );
+            renderCatalog(filtered);
+        });
+
+        // Initial render
+        renderCatalog(instruments);
+    </script>
+</body>
+</html>
